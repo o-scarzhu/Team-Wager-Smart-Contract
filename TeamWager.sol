@@ -25,9 +25,12 @@ contract TeamWager is Owner {
     }
     TeamB private teamB;
 
-    bool isOpen = false;
-
-    constructor(string memory _nameA, string memory _nameB) {
+    string public winner;
+    uint256 public minAmount;
+    bool public isOpen = false;
+    
+    constructor(string memory _nameA, string memory _nameB, uint256 _minAmount) {
+        setMinAmount(_minAmount);
         setTeamName(_nameA, _nameB);
     }
 
@@ -54,12 +57,12 @@ contract TeamWager is Owner {
     function wage(string memory team) public payable {
         Profile storage sender = profile[msg.sender];
 
+        require(msg.value > minAmount, "Insufficient funds");
         require(isOpen, "The window to wager has ended or is has not started");
         require(
             keccak256(abi.encodePacked(team)) == keccak256(abi.encodePacked(teamA.name)) 
             || keccak256(abi.encodePacked(team)) == keccak256(abi.encodePacked(teamB.name)), 
             "Invalid team value");
-        require(msg.value > 0, "You must include funds to wage");
 
         sender.team = team;
         sender.amount = msg.value;
@@ -82,7 +85,16 @@ contract TeamWager is Owner {
         teamB.name = _nameB;
     }
 
-    function setStatus() public isOwner {
+    function setMinAmount(uint256 _amount) public isOwner {
+        minAmount = _amount;
+    }
+
+    function payout(address _receiver, uint256 _amount) public isOwner {
+        require(address(this).balance >= _amount, "Insufficient funds in contract balance");
+        payable(_receiver).transfer(_amount);
+    }
+
+    function setStatus() external isOwner {
         isOpen = !isOpen;
     }
 }
