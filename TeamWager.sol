@@ -4,14 +4,7 @@ pragma solidity ^0.8.13;
 
 import "./Owner.sol";
 
-contract NBAFinalsWager is Owner {
-    enum Status {
-        Paused,
-        Opened,
-        Closed
-    }
-    Status public status;
-
+contract TeamWager is Owner {
     struct Profile {
         string team;
         uint amount;
@@ -31,6 +24,8 @@ contract NBAFinalsWager is Owner {
         uint amount;
     }
     TeamB private teamB;
+
+    bool isOpen = false;
 
     constructor(string memory _nameA, string memory _nameB) {
         setTeamName(_nameA, _nameB);
@@ -59,6 +54,7 @@ contract NBAFinalsWager is Owner {
     function wage(string memory team) public payable {
         Profile storage sender = profile[msg.sender];
 
+        require(isOpen, "The window to wager has ended or is has not started");
         require(
             keccak256(abi.encodePacked(team)) == keccak256(abi.encodePacked(teamA.name)) 
             || keccak256(abi.encodePacked(team)) == keccak256(abi.encodePacked(teamB.name)), 
@@ -84,5 +80,9 @@ contract NBAFinalsWager is Owner {
     function setTeamName(string memory _nameA, string memory _nameB) public isOwner {
         teamA.name = _nameA;
         teamB.name = _nameB;
+    }
+
+    function setStatus() public isOwner {
+        isOpen = !isOpen;
     }
 }
