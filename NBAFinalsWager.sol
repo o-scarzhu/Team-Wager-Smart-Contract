@@ -5,7 +5,6 @@ pragma solidity ^0.8.13;
 import "./Owner.sol";
 
 contract NBAFinalsWager is Owner {
-    // Status of the betting window
     enum Status {
         Paused,
         Opened,
@@ -13,7 +12,6 @@ contract NBAFinalsWager is Owner {
     }
     Status public status;
 
-    // Team A struct schema
     struct TeamA {
         string name;
         address[] votes;
@@ -21,7 +19,6 @@ contract NBAFinalsWager is Owner {
     }
     TeamA private teamA;
 
-    // Team B struct schema
     struct TeamB {
         string name;
         address[] votes;
@@ -33,12 +30,17 @@ contract NBAFinalsWager is Owner {
         setTeamName(_nameA, _nameB);
     }
 
-    function viewTeam() 
+    function viewTeam(uint8 team) 
         external 
         view 
         returns (string memory, uint, uint) 
     {
-        return (teamA.name, teamA.votes.length, teamA.amount);
+        require(team == 0 || team == 1, "Invalid team value");
+        if (team == 0) {
+            return (teamA.name, teamA.votes.length, teamA.amount);
+        } else {
+            return (teamB.name, teamB.votes.length, teamB.amount);
+        }
     }
 
     function wage(uint8 team) public payable {
